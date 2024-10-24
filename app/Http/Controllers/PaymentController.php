@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Payment;
+use App\Models\User;
+use App\Notifications\SendPaymentEmail;
 use App\Http\Requests\StorePaymentRequest;
 use App\Http\Requests\UpdatePaymentRequest;
 
@@ -13,7 +15,8 @@ class PaymentController extends Controller
      */
     public function index()
     {
-        //
+        $payments = Payment::all();
+        return $payments;
     }
 
     /**
@@ -29,7 +32,19 @@ class PaymentController extends Controller
      */
     public function store(StorePaymentRequest $request)
     {
-        //
+        $payment = new Payment;
+        $payment->payment_type = $request->payment_type;
+        $payment->amount = $request->amount;
+        $payment->user_id = $request->user_id;
+        $payment->payment_status = $request->payment_status;
+        $payment->order_id = $request->order_id;
+
+        $payment->save();
+
+        $user = USER::find($request->user_id);
+        $user->notify(new SendPaymentEmail($user, $payment));
+
+        return $payment;
     }
 
     /**
@@ -53,7 +68,16 @@ class PaymentController extends Controller
      */
     public function update(UpdatePaymentRequest $request, Payment $payment)
     {
-        //
+        $payment = Payment::find($request->id);
+
+        $payment->payment_type = $request->payment_type;
+        $payment->amount = $request->amount;
+        $payment->user_id = $request->user_id;
+        $payment->payment_status = $request->payment_status;
+        $payment->order_id = $request->order_id;
+
+        $payment->save();
+        return $payment;
     }
 
     /**
